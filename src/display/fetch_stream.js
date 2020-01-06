@@ -93,6 +93,7 @@ class PDFFetchStreamReader {
     this._reader = null;
     this._loaded = 0;
     this._filename = null;
+    this._response = null;
     const source = stream.source;
     this._withCredentials = source.withCredentials || false;
     this._contentLength = source.length;
@@ -118,6 +119,7 @@ class PDFFetchStreamReader {
         throw createResponseStatusError(response.status, url);
       }
       this._reader = response.body.getReader();
+      this._response = response;
       this._headersCapability.resolve();
 
       const getResponseHeader = (name) => {
@@ -173,6 +175,21 @@ class PDFFetchStreamReader {
     if (done) {
       return { value, done, };
     }
+
+    /* Sridhar Change - start */
+    const buffer = new Uint8Array(value).buffer;
+    let decryptedBuffer = buffer;
+
+    if ((this._response.url.indexOf('.epdf') > 0) &&
+    (this._response.url.indexOf('/ldrm/') > 0) &&
+    (value.byteLength > 0)) {
+      let offset = this._loaded;
+      decryptedBuffer = window['_x56x7823x90led'](buffer,
+        offset,
+        this._response.url);
+    }
+    /* Sridhar Change - end */
+
     this._loaded += value.byteLength;
     if (this.onProgress) {
       this.onProgress({
@@ -180,8 +197,8 @@ class PDFFetchStreamReader {
         total: this._contentLength,
       });
     }
-    const buffer = new Uint8Array(value).buffer;
-    return { value: buffer, done: false, };
+
+    return { value: decryptedBuffer, done: false, };
   }
 
   cancel(reason) {
@@ -200,6 +217,7 @@ class PDFFetchStreamRangeReader {
     this._stream = stream;
     this._reader = null;
     this._loaded = 0;
+    this._response = null;
     const source = stream.source;
     this._withCredentials = source.withCredentials || false;
     this._readCapability = createPromiseCapability();
@@ -219,6 +237,7 @@ class PDFFetchStreamRangeReader {
         throw createResponseStatusError(response.status, url);
       }
       this._readCapability.resolve();
+      this._response = response;
       this._reader = response.body.getReader();
     });
 
@@ -235,12 +254,44 @@ class PDFFetchStreamRangeReader {
     if (done) {
       return { value, done, };
     }
+
+    /* Sridhar Change - start */
+    const buffer = new Uint8Array(value).buffer;
+    let decryptedBuffer = buffer;
+
+    if ((this._response.url.indexOf('.epdf') > 0) &&
+    (this._response.url.indexOf('/ldrm/') > 0) &&
+    (value.byteLength > 0)) {
+      let rangeHeader = this._response.headers.get('Content-Range');
+      if (!rangeHeader) {
+        rangeHeader = this._response.headers.get('content-range');
+      }
+
+      let startOffsetInt = 0;
+      if (rangeHeader) {
+        if ((rangeHeader.indexOf('bytes ') === 0) &&
+            (rangeHeader.indexOf('-') > 0)) {
+          let startOffset = rangeHeader.substring(6, rangeHeader.indexOf('-'));
+
+          if (startOffset.trim().length > 0) {
+            startOffsetInt = parseInt(startOffset.trim(), 10);
+          } else {
+            throw new Error('Invalid offset during decrypt');
+          }
+        }
+      }
+
+      decryptedBuffer = window['_x56x7823x90led'](buffer,
+        (startOffsetInt + this._loaded),
+        this._response.url);
+    }
+    /* Sridhar Change - end */
+
     this._loaded += value.byteLength;
     if (this.onProgress) {
       this.onProgress({ loaded: this._loaded, });
     }
-    const buffer = new Uint8Array(value).buffer;
-    return { value: buffer, done: false, };
+    return { value: decryptedBuffer, done: false, };
   }
 
   cancel(reason) {
