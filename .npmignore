@@ -1,0 +1,12 @@
+.git
+.github
+.gitattributes
+.gitignore
+docs/
+examples/
+extensions/
+external/
+src/
+test/
+web/
+I10n/
