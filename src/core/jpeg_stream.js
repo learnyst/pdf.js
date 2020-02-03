@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { createObjectURL, shadow } from '../shared/util';
-import { DecodeStream } from './stream';
-import { isDict } from './primitives';
-import { JpegImage } from './jpg';
+import { createObjectURL, shadow } from "../shared/util.js";
+import { DecodeStream } from "./stream.js";
+import { isDict } from "./primitives.js";
+import { JpegImage } from "./jpg.js";
 
 /**
  * Depending on the type of JPEG a JpegStream is handled in different ways. For
@@ -25,13 +25,14 @@ import { JpegImage } from './jpg';
  * a library to decode these images and the stream behaves like all the other
  * DecodeStreams.
  */
-let JpegStream = (function JpegStreamClosure() {
+const JpegStream = (function JpegStreamClosure() {
   function JpegStream(stream, maybeLength, dict, params) {
     // Some images may contain 'junk' before the SOI (start-of-image) marker.
     // Note: this seems to mainly affect inline images.
     let ch;
     while ((ch = stream.getByte()) !== -1) {
-      if (ch === 0xFF) { // Find the first byte of the SOI marker (0xFFD8).
+      // Find the first byte of the SOI marker (0xFFD8).
+      if (ch === 0xff) {
         stream.skip(-1); // Reset the stream position to the SOI.
         break;
       }
@@ -46,10 +47,10 @@ let JpegStream = (function JpegStreamClosure() {
 
   JpegStream.prototype = Object.create(DecodeStream.prototype);
 
-  Object.defineProperty(JpegStream.prototype, 'bytes', {
+  Object.defineProperty(JpegStream.prototype, "bytes", {
     get: function JpegStream_bytes() {
       // If `this.maybeLength` is null, we'll get the entire stream.
-      return shadow(this, 'bytes', this.stream.getBytes(this.maybeLength));
+      return shadow(this, "bytes", this.stream.getBytes(this.maybeLength));
     },
     configurable: true,
   });
@@ -63,19 +64,19 @@ let JpegStream = (function JpegStreamClosure() {
     if (this.eof) {
       return;
     }
-    let jpegOptions = {
+    const jpegOptions = {
       decodeTransform: undefined,
       colorTransform: undefined,
     };
 
     // Checking if values need to be transformed before conversion.
-    let decodeArr = this.dict.getArray('Decode', 'D');
+    const decodeArr = this.dict.getArray("Decode", "D");
     if (this.forceRGB && Array.isArray(decodeArr)) {
-      let bitsPerComponent = this.dict.get('BitsPerComponent') || 8;
-      let decodeArrLength = decodeArr.length;
-      let transform = new Int32Array(decodeArrLength);
+      const bitsPerComponent = this.dict.get("BitsPerComponent") || 8;
+      const decodeArrLength = decodeArr.length;
+      const transform = new Int32Array(decodeArrLength);
       let transformNeeded = false;
-      let maxValue = (1 << bitsPerComponent) - 1;
+      const maxValue = (1 << bitsPerComponent) - 1;
       for (let i = 0; i < decodeArrLength; i += 2) {
         transform[i] = ((decodeArr[i + 1] - decodeArr[i]) * 256) | 0;
         transform[i + 1] = (decodeArr[i] * maxValue) | 0;
@@ -89,7 +90,7 @@ let JpegStream = (function JpegStreamClosure() {
     }
     // Fetching the 'ColorTransform' entry, if it exists.
     if (isDict(this.params)) {
-      let colorTransform = this.params.get('ColorTransform');
+      const colorTransform = this.params.get("ColorTransform");
       if (Number.isInteger(colorTransform)) {
         jpegOptions.colorTransform = colorTransform;
       }
@@ -97,7 +98,7 @@ let JpegStream = (function JpegStreamClosure() {
     const jpegImage = new JpegImage(jpegOptions);
 
     jpegImage.parse(this.bytes);
-    let data = jpegImage.getData({
+    const data = jpegImage.getData({
       width: this.drawWidth,
       height: this.drawHeight,
       forceRGB: this.forceRGB,
@@ -109,12 +110,10 @@ let JpegStream = (function JpegStreamClosure() {
   };
 
   JpegStream.prototype.getIR = function(forceDataSchema = false) {
-    return createObjectURL(this.bytes, 'image/jpeg', forceDataSchema);
+    return createObjectURL(this.bytes, "image/jpeg", forceDataSchema);
   };
 
   return JpegStream;
 })();
 
-export {
-  JpegStream,
-};
+export { JpegStream };

@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint no-var: error, prefer-const: error */
 
 const DEFAULT_VIEW_HISTORY_CACHE_SIZE = 20;
 
@@ -22,17 +21,17 @@ const DEFAULT_VIEW_HISTORY_CACHE_SIZE = 20;
  *
  * The way that the view parameters are stored depends on how PDF.js is built,
  * for 'gulp <flag>' the following cases exist:
- *  - FIREFOX or MOZCENTRAL - uses sessionStorage.
- *  - GENERIC or CHROME     - uses localStorage, if it is available.
+ *  - MOZCENTRAL        - uses sessionStorage.
+ *  - GENERIC or CHROME - uses localStorage, if it is available.
  */
 class ViewHistory {
   constructor(fingerprint, cacheSize = DEFAULT_VIEW_HISTORY_CACHE_SIZE) {
     this.fingerprint = fingerprint;
     this.cacheSize = cacheSize;
 
-    this._initializedPromise = this._readFromStorage().then((databaseStr) => {
-      const database = JSON.parse(databaseStr || '{}');
-      if (!('files' in database)) {
+    this._initializedPromise = this._readFromStorage().then(databaseStr => {
+      const database = JSON.parse(databaseStr || "{}");
+      if (!("files" in database)) {
         database.files = [];
       } else {
         while (database.files.length >= this.cacheSize) {
@@ -48,7 +47,7 @@ class ViewHistory {
         }
       }
       if (index === -1) {
-        index = database.files.push({ fingerprint: this.fingerprint, }) - 1;
+        index = database.files.push({ fingerprint: this.fingerprint }) - 1;
       }
       this.file = database.files[index];
       this.database = database;
@@ -58,20 +57,18 @@ class ViewHistory {
   async _writeToStorage() {
     const databaseStr = JSON.stringify(this.database);
 
-    if (typeof PDFJSDev !== 'undefined' &&
-        PDFJSDev.test('FIREFOX || MOZCENTRAL')) {
-      sessionStorage.setItem('pdfjs.history', databaseStr);
+    if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL")) {
+      sessionStorage.setItem("pdfjs.history", databaseStr);
       return;
     }
-    localStorage.setItem('pdfjs.history', databaseStr);
+    localStorage.setItem("pdfjs.history", databaseStr);
   }
 
   async _readFromStorage() {
-    if (typeof PDFJSDev !== 'undefined' &&
-        PDFJSDev.test('FIREFOX || MOZCENTRAL')) {
-      return sessionStorage.getItem('pdfjs.history');
+    if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL")) {
+      return sessionStorage.getItem("pdfjs.history");
     }
-    return localStorage.getItem('pdfjs.history');
+    return localStorage.getItem("pdfjs.history");
   }
 
   async set(name, val) {
@@ -106,6 +103,4 @@ class ViewHistory {
   }
 }
 
-export {
-  ViewHistory,
-};
+export { ViewHistory };
