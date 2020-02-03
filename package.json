@@ -1,6 +1,6 @@
 {
   "name": "@learnyst/pdf.js",
-  "version": "2.3.300",
+  "version": "2.3.304",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },  
@@ -62,8 +62,5 @@
     "type": "git",
     "url": "git://github.com/learnyst/pdf.js.git"
   },
-  "license": "Apache-2.0",
-  "dependencies": {
-    "pdfjs-dist": "file:build/dist"
-  }
+  "license": "Apache-2.0"
 }
