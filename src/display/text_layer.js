@@ -50,6 +50,23 @@ var renderTextLayer = (function renderTextLayerClosure() {
     return !NonWhitespaceRegexp.test(str);
   }
 
+  function shuffleString(str) {
+    if (str) {
+      const a = str.split("");
+      const n = a.length;
+
+      for (let i = n - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = a[i];
+        a[i] = a[j];
+        a[j] = tmp;
+      }
+      return a.join("");
+    }
+
+    return str;
+  }
+
   function appendText(task, geom, styles) {
     // Initialize all used properties to keep the caches monomorphic.
     var textDiv = document.createElement("span");
@@ -101,7 +118,7 @@ var renderTextLayer = (function renderTextLayerClosure() {
     textDiv.style.fontSize = `${fontHeight}px`;
     textDiv.style.fontFamily = style.fontFamily;
 
-    textDiv.textContent = geom.str;
+    textDiv.textContent = shuffleString(geom.str);
     // `fontName` is only used by the FontInspector, and we only use `dataset`
     // here to make the font name available in the debugger.
     if (task._fontInspectorEnabled) {
