@@ -1,6 +1,6 @@
 {
   "name": "@learnyst/pdf.js",
-  "version": "2.3.3001",
+  "version": "2.3.306",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },  
