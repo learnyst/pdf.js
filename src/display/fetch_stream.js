@@ -193,13 +193,22 @@ class PDFFetchStreamReader {
     const buffer = new Uint8Array(value).buffer;
     let decryptedBuffer = buffer;
 
-    if ((this._response.url.indexOf('.epdf') > 0) &&
-    (this._response.url.indexOf('/ldrm/') > 0) &&
+    let pdfUrl = undefined;
+    if (this._response) {
+      pdfUrl = this._response.url;
+    }
+
+    if (!pdfUrl) {
+      pdfUrl = this._stream.source.url;
+    }
+
+    if ((pdfUrl.indexOf('.epdf') > 0) &&
+    (pdfUrl.indexOf('/ldrm/') > 0) &&
     (value.byteLength > 0)) {
       let offset = this._loaded;
       decryptedBuffer = window['_x56x7823x90led'](buffer,
         offset,
-        this._response.url);
+        pdfUrl);
     }
     /* Sridhar Change - end */
 
